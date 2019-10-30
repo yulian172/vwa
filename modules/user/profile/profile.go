@@ -62,7 +62,9 @@ func UserHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 func GetUserHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	if r.Method == "POST" {
-		uid := r.FormValue("uid")
+		// uid := r.FormValue("uid")
+		sess := session.New()
+		uid := sess.GetSession(r, "id")
 		respdata, err := GetUserData(uid)
 		if err != nil {
 			resp := Jsonresp{}
