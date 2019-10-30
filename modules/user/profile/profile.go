@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"crypto/md5"
 	"encoding/hex"
@@ -161,9 +162,11 @@ func UpdatePasswordHandler(w http.ResponseWriter, r *http.Request, _ httprouter.
 
 func GetUserData(uid string) (*UserData, error) {
 
-	query := fmt.Sprintf("SELECT username, email, phone_number FROM users where id=%s", uid)
+	// query := fmt.Sprintf("SELECT username, email, phone_number FROM users where id=%s", uid)
+	query := fmt.Sprintf("SELECT username, email, phone_number FROM users where id = $1")
 	userdata := UserData{}
-	stmt := DB.QueryRow(query)
+	uidint, _ := strconv.Atoi(uid)
+	stmt := DB.QueryRow(query, uidint)
 
 	err := stmt.Scan(&userdata.UserName, &userdata.Email, &userdata.MSISDN)
 	if err != nil {
