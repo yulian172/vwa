@@ -1,9 +1,10 @@
 package session
 
 import (
-	"log"
 	"fmt"
+	"log"
 	"net/http"
+
 	"github.com/gorilla/sessions"
 )
 
@@ -36,13 +37,13 @@ func (Session *Session) SetSession(w http.ResponseWriter, r *http.Request, data 
 		}
 	}
 	err = session.Save(r, w)
-	
-		if err != nil {
-			log.Println(err.Error())
-		}
+
+	if err != nil {
+		log.Println(err.Error())
+	}
 }
 
-func (Session *Session) GetSession(r *http.Request, key string) string  {
+func (Session *Session) GetSession(r *http.Request, key string) string {
 	session, err := store.Get(r, "vwa")
 
 	if err != nil {
@@ -59,7 +60,7 @@ func (Session *Session) DeleteSession(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err.Error())
 	}
-	
+
 	session.Options = &sessions.Options{
 		MaxAge:   3600,
 		HttpOnly: false,
@@ -85,4 +86,3 @@ func (Session *Session) IsLoggedIn(r *http.Request) bool {
 	}
 	return true
 }
-

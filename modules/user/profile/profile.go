@@ -5,9 +5,12 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"text/template"
+	"time"
 
 	"crypto/md5"
 	"encoding/hex"
+	"math/rand"
 	"vwa/helper/middleware"
 	"vwa/util/database"
 	"vwa/util/render"
@@ -55,7 +58,7 @@ func UserHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	data := make(map[string]interface{})
 	nama := r.URL.Query()["user"][0]
 	data["title"] = "User Profile"
-	data["nama_user"] = nama
+	data["nama_user"] = template.HTMLEscapeString(nama)
 
 	render.HTMLRender(w, r, "template.user", data)
 
@@ -101,6 +104,16 @@ func ProfileHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params)
 		data["email"] = userdata.Email
 		data["name"] = userdata.UserName
 		data["msisdn"] = userdata.MSISDN
+
+		token := fmt.Sprintf("%v%v", Md5Sum(time.Now().String()), Md5Sum(strconv.Itoa(rand.Int())))
+		data["token"] = token
+		sessionData := make(map[string]string)
+		sessionData["id"] = sess.GetSession(r, "id")
+		sessionData["uname"] = sess.GetSession(r, "uname")
+		sessionData["email"] = sess.GetSession(r, "email")
+		sessionData["msisdn"] = sess.GetSession(r, "msisdn")
+		sessionData["token"] = token
+		sess.SetSession(w, r, sessionData)
 	} else {
 		data["title"] = "Profile"
 	}
@@ -119,13 +132,21 @@ func UpdateProfileHandler(w http.ResponseWriter, r *http.Request, _ httprouter.P
 			name := r.FormValue("name")
 			email := r.FormValue("email")
 			msisdn := r.FormValue("msisdn")
-			ok := updateProfile(uid, name, email, msisdn)
-			if !ok {
+			token := r.FormValue("token")
+			stoken := sess.GetSession(r, "token")
+			fmt.Printf("t : %v\ns : %v\n", token, stoken)
+			if token != stoken {
 				resp.Success = "0"
-				resp.Message = "Gagal menperbaharui data"
+				resp.Message = "Gagal menperbaharui data (token)"
 			} else {
-				resp.Success = "1"
-				resp.Message = "Data berhasil diperbaharui"
+				ok := updateProfile(uid, name, email, msisdn)
+				if !ok {
+					resp.Success = "0"
+					resp.Message = "Gagal menperbaharui data"
+				} else {
+					resp.Success = "1"
+					resp.Message = "Data berhasil diperbaharui"
+				}
 			}
 		}
 	} else {

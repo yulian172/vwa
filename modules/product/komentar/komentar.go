@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"text/template"
 
 	//	"html/template"
 	"vwa/helper/middleware"
@@ -106,10 +107,12 @@ func VerifyUserHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Par
 func SaveKomentarHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
 	isiKomentar := r.FormValue("isikomentar")
-	//filter := template.HTMLEscapeString(isiKomentar)
-	uid := r.FormValue("uid")
+	filter := template.HTMLEscapeString(isiKomentar)
+	// uid := r.FormValue("uid")
+	sess := session.New()
+	uid := sess.GetSession(r, "id")
 
-	ok := SaveKomentar(uid, isiKomentar)
+	ok := SaveKomentar(uid, filter)
 	if !ok {
 		resp := struct {
 			Body string `json:"body"`
